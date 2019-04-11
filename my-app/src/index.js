@@ -12,8 +12,9 @@ function Square(props) {
   class Board extends React.Component {
       constructor(props) {
           super(props);
+          console.log(props);
           this.state = { 
-                squares : Array(16).fill(null),
+                squares : Array(props.size*props.size).fill(null),
                 nextMove: 'X'
             };
       }
@@ -27,11 +28,13 @@ function Square(props) {
         this.setState({squares :squares, nextMove : (this.state.nextMove === 'X') ? '0': 'X'});
     }
 
-    generateWinCombinations(size) {
+    generateWinCombinations(sizeParam) {
         let winningCombinations = [];
         let diag1 = [];
         let diag2 = [];
+        let size = parseInt(sizeParam);
         let combVertical = new Array(size).fill(0).map(() => new Array(size).fill(0));
+        console.log(combVertical);
         for(var i = 0 ; i < size; i++) {
           let combHorizantal = [];
           for(var j = 0 ; j < size; j++) {
@@ -49,17 +52,7 @@ function Square(props) {
     }
 
     calculateWinner(squares) {
-      var winningCombins = [
-        [0,1,2],
-        [3,4,5],
-        [6,7,8],
-        [0,3,6],
-        [1,4,7],
-        [2,5,8],
-        [0,4,8],
-        [6,4,2]
-      ];
-      winningCombins = this.generateWinCombinations(4);
+      var winningCombins = this.generateWinCombinations(this.props.size);
       let winner = null;
       for(let k=0; k < winningCombins.length; k++ ) {
         for(let m = 0; winningCombins[k].length; m++) {
@@ -85,20 +78,20 @@ function Square(props) {
       } else {
         status = 'Next player: X';
       }
-      let size = 4;
       var boardData = [];
-      for(let i=0; i<size; i++) {
+      for(let i=0; i<this.props.size; i++) {
         boardData.push(
-          { 'row' : i, 'col': Array(size).fill({'thisReference' : this})}
+          { 'row' : i, 'col': new Array(parseInt(this.props.size)).fill({'thisReference' : this})}
           );
       }
       console.log('boardDATA',boardData);
+      var thisReference = this;
       var board = boardData.map( function(element) {
-        var elements = []; 
+        var elements = [];  
         for(let j=0; j<element.col.length; j++) {
 
           console.log('j',j);
-          elements.push(element.col[j].thisReference.renderSquare((element.row) * size + j));
+          elements.push(element.col[j].thisReference.renderSquare((element.row) * thisReference.props.size + j));
           //element.col[j].location = parseInt( (element.row) * size + j);
         }
         /*console.log('column',element.col);
@@ -125,15 +118,13 @@ function Square(props) {
     constructor(props) {
       super(props);
       this.state = { 
-            history : [{squares : Array(9).fill(null)}],
-            nextMove: 'X'
         };
     }
-    render() {
+    renderGame1() {
       return (
         <div className="game">
           <div className="game-board">
-            <Board />
+            <Board size={this.state.boardSize}/>
           </div>
           <div className="game-info">
             <div>{/* status */}</div>
@@ -141,6 +132,24 @@ function Square(props) {
           </div>
         </div>
       );
+    }
+    updateBoardSize(evt) {
+        this.setState({
+          boardSize: evt.target.value
+        });
+        console.log(this.state.boardSize);
+    }
+    render() {
+      console.log(this.state.boardSize);
+      if(!this.state.boardSize || this.state.boardSize < 1) {
+        return (
+          <input value={this.state.boardSize} onChange={evt => this.updateBoardSize(evt)}/>
+        );
+      } else {
+        return (
+          this.renderGame1()
+        );
+      }
     }
   }
   
