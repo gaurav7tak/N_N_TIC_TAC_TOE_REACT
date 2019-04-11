@@ -12,7 +12,6 @@ function Square(props) {
   class Board extends React.Component {
       constructor(props) {
           super(props);
-          console.log(props);
           this.state = { 
                 squares : Array(props.size*props.size).fill(null),
                 nextMove: 'X'
@@ -21,7 +20,7 @@ function Square(props) {
     handleClick(i) {
         const squares = this.state.squares.slice();
         //console.log(this.state);
-        if(this.calculateWinner(this.state.squares) || squares[i]) {
+        if(squares[i]) {
             return;
         }
         squares[i] = this.state.nextMove;
@@ -34,7 +33,6 @@ function Square(props) {
         let diag2 = [];
         let size = parseInt(sizeParam);
         let combVertical = new Array(size).fill(0).map(() => new Array(size).fill(0));
-        console.log(combVertical);
         for(var i = 0 ; i < size; i++) {
           let combHorizantal = [];
           for(var j = 0 ; j < size; j++) {
@@ -43,11 +41,9 @@ function Square(props) {
             if(i === j) diag1.push(i*size+j);
             if(i+j === size-1) diag2.push(i*size+j);
           }
-          if(i === 0) console.log('Vertical',combVertical);
           winningCombinations.push(combHorizantal);
         }
         winningCombinations.push(diag1,diag2, ...combVertical);
-        console.log(winningCombinations);
         return winningCombinations;
     }
 
@@ -55,18 +51,19 @@ function Square(props) {
       var winningCombins = this.generateWinCombinations(this.props.size);
       let winner = null;
       for(let k=0; k < winningCombins.length; k++ ) {
-        for(let m = 0; winningCombins[k].length; m++) {
-          if(winningCombins[k][0] && winningCombins[k][0] === winningCombins[k][m]) {
-            winner = winningCombins[k][0];
+        for(let m = 1; m < winningCombins[k].length; m++) {
+          if(squares[winningCombins[k][0]] === squares[winningCombins[k][m]]) {
+            winner = squares[winningCombins[k][0]];
           } else {
-            return null;
+            winner = null;
+            break;
           }
-        }
+        } 
+        if(winner) return winner;
       }
       return winner;
     }
     renderSquare(i) {
-      console.log('render'+i);
       return (<Square value={this.state.squares[i]} onClick={ () => this.handleClick(i)}/>);
     }
   
@@ -76,7 +73,7 @@ function Square(props) {
       if(winner) {
         status = winner+' won';
       } else {
-        status = 'Next player: X';
+        status = 'Next player: '+ this.state.nextMove;
       }
       var boardData = [];
       for(let i=0; i<this.props.size; i++) {
@@ -84,13 +81,10 @@ function Square(props) {
           { 'row' : i, 'col': new Array(parseInt(this.props.size)).fill({'thisReference' : this})}
           );
       }
-      console.log('boardDATA',boardData);
       var thisReference = this;
       var board = boardData.map( function(element) {
         var elements = [];  
         for(let j=0; j<element.col.length; j++) {
-
-          console.log('j',j);
           elements.push(element.col[j].thisReference.renderSquare((element.row) * thisReference.props.size + j));
           //element.col[j].location = parseInt( (element.row) * size + j);
         }
@@ -104,7 +98,6 @@ function Square(props) {
           </div>
         );
       });
-      console.log('board',board);
       return (
         <div>
           <div className="status">{status}</div>
@@ -137,10 +130,8 @@ function Square(props) {
         this.setState({
           boardSize: evt.target.value
         });
-        console.log(this.state.boardSize);
     }
     render() {
-      console.log(this.state.boardSize);
       if(!this.state.boardSize || this.state.boardSize < 1) {
         return (
           <input value={this.state.boardSize} onChange={evt => this.updateBoardSize(evt)}/>
